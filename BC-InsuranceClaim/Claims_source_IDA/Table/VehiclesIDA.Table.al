@@ -5,8 +5,9 @@ table 55101 "Vehicles IDA"
 {
     Caption = 'Vehicles';
     DataClassification = CustomerContent;
-    DrillDownPageId = "Vehicles List IDA";
-    LookupPageId = "Vehicles card IDA";
+    DrillDownPageId = "Vehicles list IDA";
+    LookupPageId = "Vehicles list IDA";
+
 
     fields
     {
@@ -44,4 +45,19 @@ table 55101 "Vehicles IDA"
             Clustered = true;
         }
     }
+
+    fieldgroups
+    {
+        fieldgroup(DropDown; "License Plate", Model)
+        {
+
+        }
+    }
+
+
+    trigger OnInsert()
+    begin
+        if Rec."License Plate" = '' then
+            error('License Plate cannot be empty');
+    end;
 }

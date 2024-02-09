@@ -34,6 +34,7 @@ page 55104 "Unprocessed Claim IDA"
                     {
                         ToolTip = 'Specifies the value of the Lincense Plate field.';
                         ShowMandatory = true;
+
                     }
                 }
 
@@ -58,10 +59,17 @@ page 55104 "Unprocessed Claim IDA"
                         ToolTip = 'Specifies the value of the Accident Date field.';
                         ShowMandatory = true;
                     }
-                    field(Comments; rec.Comments)
+                    field(Comments; CommentsText)
                     {
                         ToolTip = 'Specifies the value of the Comments field.';
                         MultiLine = true;
+                        ExtendedDatatype = RichContent;
+
+                        trigger OnValidate()
+                        begin
+                            setRichContent();
+                        end;
+
                     }
                 }
 
@@ -70,6 +78,7 @@ page 55104 "Unprocessed Claim IDA"
                     field("Decision Date"; Rec."Decision Date")
                     {
                         ToolTip = 'Specifies the value of the Decision Date field.';
+                        ShowMandatory = true;
                     }
                     field("Payment Date"; Rec."Payment Date")
                     {
@@ -87,6 +96,12 @@ page 55104 "Unprocessed Claim IDA"
                     field("total Payment"; Rec."total Payment")
                     {
                         ToolTip = 'Specifies the value of the total Payment field.';
+                    }
+                    field("Estimated Cost"; rec."Estimated Payment")
+                    {
+                        ToolTip = 'Specifies the value of the estimated Payment field.';
+                        Editable = false;
+
                     }
                 }
 
@@ -132,5 +147,32 @@ page 55104 "Unprocessed Claim IDA"
     }
     var
         postingClaims: Codeunit "Posting Claims IDA";
+        CommentsText: text;
+
+    trigger OnAfterGetRecord()
+    begin
+        GetRichContent();
+    end;
+
+    local procedure setRichContent()
+    var
+        outStream: OutStream;
+    begin
+        rec.Comments.CreateOutStream(outStream, TextEncoding::UTF8);
+        outStream.WriteText(CommentsText);
+        rec.Modify(true);
+    end;
+
+    local procedure GetRichContent()
+    var
+        inStreamText: InStream;
+    begin
+        clear(CommentsText);
+        rec.CalcFields(Comments);
+        if rec.Comments.HasValue() then begin
+            rec.Comments.CreateInStream(inStreamtext, TextEncoding::UTF8);
+            inStreamtext.Read(CommentsText)
+        end;
+    end;
 }
 

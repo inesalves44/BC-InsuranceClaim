@@ -20,21 +20,22 @@ table 55103 "Unprocessed Claims Lines IDA"
             TableRelation = Item;
 
             trigger OnValidate()
+            var
+                items: Record Item;
             begin
-                CalcFields("estimated UNIT Cost");
+                if items.Get(rec."Item No.") then begin
+                    rec."Item Name" := items.Description;
+                    rec."Estimated Unit Cost" := items."Unit Cost";
+                end;
             end;
         }
         field(8; "Item Name"; TEXT[100])
         {
-            FieldClass = FlowField;
-            CalcFormula = lookup(Item.Description where("No." = field("Item No.")));
+            Caption = 'Item Name';
         }
         field(4; "Estimated Unit Cost"; Decimal)
         {
-            Caption = 'estimated Cost';
-            FieldClass = FlowField;
-
-            CalcFormula = lookup(Item."Unit Cost" where("No." = field("Item No.")));
+            Caption = 'Estimated Cost';
         }
         field(7; Quantity; Integer)
         {
@@ -43,6 +44,11 @@ table 55103 "Unprocessed Claims Lines IDA"
             trigger OnValidate()
             begin
                 rec."Estimated Total Cost" := rec.Quantity * rec."Estimated Unit Cost";
+
+                if claimHeader.get(rec."Document No.") then begin
+                    claimHeader."Estimated Payment" += rec."Estimated Total Cost" - xrec."Estimated Total Cost";
+                    claimHeader.Modify();
+                end;
             end;
         }
         field(6; "Estimated Total Cost"; Decimal)
@@ -63,6 +69,9 @@ table 55103 "Unprocessed Claims Lines IDA"
         }
     }
 
+    var
+        claimHeader: Record "unProcessed Claims Header IDA";
+
     trigger OnInsert()
     var
         unProcessedClaimsLines: Record "Unprocessed Claims Lines IDA";
@@ -76,4 +85,13 @@ table 55103 "Unprocessed Claims Lines IDA"
                 rec."Line No." := 'LINE0001';
         end;
     end;
+
+    trigger OnDelete()
+    begin
+        if claimHeader.get(rec."Document No.") then begin
+            claimHeader."Estimated Payment" -= rec."Estimated Total Cost";
+            claimHeader.Modify();
+        end;
+    end;
+
 }

@@ -39,6 +39,7 @@ codeunit 55102 "Export and Import Files IDA"
             for j := 1 to attachments.documents.count do begin
                 ExportFromAFileFromAMediaSet(InStream, attachments, j, DataCompression);
             end;
+            
             attachments.Next();
         end;
 

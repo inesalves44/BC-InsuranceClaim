@@ -47,10 +47,13 @@ page 55106 "Unprocessed Claims List IDA"
                 field("Estimated Total Cost"; rec."Estimated Total Cost")
                 {
                     ToolTip = 'Specifies the value of the estimated total cost field.';
+
                 }
             }
         }
     }
+    var
+        pageClaim: page "Unprocessed Claim IDA";
 
 
 }

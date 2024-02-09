@@ -18,10 +18,11 @@ table 55108 "Claims Ledger Entries IDA"
         }
         field(2; "Customer NO."; Code[20])
         {
-            Caption = 'Customer NO.';
+            Caption = 'Customer No.';
         }
         field(9; "Customer Name"; text[100])
         {
+            Caption = 'Customer Name';
         }
         field(3; "Date Claim"; Date)
         {
@@ -35,10 +36,7 @@ table 55108 "Claims Ledger Entries IDA"
         {
             Caption = 'Responsible';
         }
-        field(6; "responsible Payment"; Boolean)
-        {
-            Caption = 'responsible Payment';
-        }
+
     }
     keys
     {
@@ -49,6 +47,14 @@ table 55108 "Claims Ledger Entries IDA"
         key(SK; "date claim")
         { }
     }
+
+    procedure OpenDocument()
+    var
+        processedClaims: Record "Processed Claims Header IDA";
+    begin
+        if processedClaims.get(rec."Document No.") then
+            page.Run(page::"Processed Claim Card IDA", processedClaims);
+    end;
 }
 
 

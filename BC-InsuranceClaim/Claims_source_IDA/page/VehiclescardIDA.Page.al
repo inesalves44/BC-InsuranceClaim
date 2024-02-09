@@ -4,6 +4,7 @@ page 55102 "Vehicles card IDA"
     Caption = 'Vehicles card';
     PageType = Card;
     SourceTable = "Vehicles IDA";
+    UsageCategory = Administration;
 
     layout
     {

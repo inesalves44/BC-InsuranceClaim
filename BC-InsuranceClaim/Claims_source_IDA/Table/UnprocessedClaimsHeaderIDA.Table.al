@@ -6,6 +6,7 @@ table 55102 "Unprocessed Claims Header IDA"
     Caption = 'Unprocessed Claims Header';
     DataClassification = CustomerContent;
 
+
     fields
     {
         field(1; "Document No."; Code[20])
@@ -61,8 +62,14 @@ table 55102 "Unprocessed Claims Header IDA"
         {
             Caption = 'Accident Date';
             DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if "Accident Date" > Today then
+                    error('Accidents cannot happen in the future');
+            end;
         }
-        field(6; Comments; text[2048])
+        field(6; Comments; blob)
         {
             Caption = 'Comments';
             DataClassification = CustomerContent;
@@ -75,7 +82,6 @@ table 55102 "Unprocessed Claims Header IDA"
             trigger OnValidate()
             var
                 enum: Enum "Responsible IDA";
-
             begin
                 if rec.Responsible = enum::insured then begin
                     rec."Who will pay" := rec."Customer name";
@@ -99,11 +105,18 @@ table 55102 "Unprocessed Claims Header IDA"
             begin
                 if rec."Decision Date" < rec."Accident Date" then
                     Error('Decision Date cannot be before accident date');
+
+                if rec."Decision Date" > Today then
+                    Error('Decision Date cannot be in the future');
             end;
         }
         field(9; "total Payment"; Decimal)
         {
-            Caption = 'total Payment';
+            Caption = 'Total Payment';
+        }
+        field(15; "Estimated Payment"; Decimal)
+        {
+            Caption = 'Estimated total Payment';
         }
         field(10; "Payment Date"; Date)
         {
@@ -114,6 +127,10 @@ table 55102 "Unprocessed Claims Header IDA"
             begin
                 if rec."Payment Date" < rec."Decision Date" then
                     Error('Payment Date cannot be before decision date.');
+
+                if rec."Payment Date" > Today then
+                    error('Payment Date cannot be in the future.');
+
             end;
 
         }
@@ -126,6 +143,9 @@ table 55102 "Unprocessed Claims Header IDA"
             Clustered = true;
         }
     }
+
+    var
+        enumResponsible: enum "Responsible IDA";
 
     trigger OnInsert()
     var

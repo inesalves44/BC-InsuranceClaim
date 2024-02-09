@@ -6,8 +6,7 @@ page 55101 "Vehicles List IDA"
     SourceTable = "Vehicles IDA";
     UsageCategory = Lists;
     CardPageId = "Vehicles card IDA";
-    Editable = true;
-    
+    Editable = false;
 
     layout
     {

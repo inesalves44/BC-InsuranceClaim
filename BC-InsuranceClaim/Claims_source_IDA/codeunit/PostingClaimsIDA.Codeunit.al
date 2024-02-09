@@ -7,7 +7,7 @@ codeunit 55101 "Posting Claims IDA"
     procedure PostInsuranceClaims(unprocessedClaim: Record "Unprocessed Claims Header IDA")
     var
         unprocessedClaimLines: record "Unprocessed Claims Lines IDA";
-        totalCost: decimal;
+        totalCost: Decimal;
     begin
         unprocessedClaimLines.setrange("Document No.", unprocessedClaim."Document No.");
         if unprocessedClaimLines.IsEmpty() then begin
@@ -16,13 +16,11 @@ codeunit 55101 "Posting Claims IDA"
         end;
 
         if unprocessedClaimLines.FindSet() then;
+
         CheckMandatoryFieldsClaimHeader(unprocessedClaim);
         CheckMandatoryFieldsClaimLines(unprocessedClaimLines, unprocessedClaim."Document No.");
 
-        totalCost := CopyClaimsHeaderToProcessed(unprocessedClaim, unprocessedClaimLines);
-
-        if totalCost <= 0 then
-            Error('Total payment cannot be zero');
+        totalCost := CopyClaimsHeaderToProcessed(unprocessedClaim);
 
         CopyClaimsLinesToProcessed(unprocessedClaimLines, unprocessedClaim."Document No.");
         CopyLedgerEntries(unprocessedClaim, totalCost);
@@ -49,7 +47,9 @@ codeunit 55101 "Posting Claims IDA"
             error('Cannot process a claim without an accident date');
         if (unprocessedClaim.Responsible = enumResponsible::Blank) or (unprocessedClaim."Decision Date" = 0D) then begin
             error('To close a claim there has to be a responsible party and decision date');
-        end
+        end;
+        if (unprocessedClaim."total Payment" = 0) and (unprocessedClaim."Estimated Payment" = 0) then
+            error('The cost of the claim cannot be zero');
     end;
 
     local procedure CheckMandatoryFieldsClaimLines(unprocessedClaimsLines: Record "Unprocessed Claims Lines IDA"; claimDocument: code[20])
@@ -62,7 +62,7 @@ codeunit 55101 "Posting Claims IDA"
             until unprocessedClaimsLines.next() = 0;
     end;
 
-    local procedure CopyClaimsHeaderToProcessed(unprocessedClaimHeader: record "Unprocessed Claims Header IDA"; var unprocessedClaimsLines: Record "Unprocessed Claims Lines IDA"): Decimal
+    local procedure CopyClaimsHeaderToProcessed(unprocessedClaimHeader: record "Unprocessed Claims Header IDA"): decimal
     var
         processedClaimHeader: record "Processed Claims Header IDA";
     begin
@@ -70,12 +70,9 @@ codeunit 55101 "Posting Claims IDA"
         processedClaimHeader.TransferFields(unprocessedClaimHeader);
         processedClaimHeader."Customer name" := unprocessedClaimHeader."Customer name";
         processedClaimHeader."Vendor name" := unprocessedClaimHeader."Vendor name";
-        if (not unprocessedClaimsLines.IsEmpty()) and (unprocessedClaimHeader."total Payment" = 0) then
-            repeat
-                processedClaimHeader."total Payment" += unprocessedClaimsLines."Estimated Total Cost";
-            until unprocessedClaimsLines.Next() = 0;
+        if unprocessedClaimHeader."total Payment" = 0 then
+            processedClaimHeader."total Payment" := unprocessedClaimHeader."Estimated Payment";
         processedClaimHeader.Insert(true);
-        if unprocessedClaimsLines.FindFirst() then;
         exit(processedClaimHeader."total Payment");
     end;
 
@@ -92,7 +89,6 @@ codeunit 55101 "Posting Claims IDA"
                 items.FindFirst();
                 processedClaimLines.Init();
                 processedClaimLines.TransferFields(unprocessedClaimLines);
-                processedClaimLines."Item Name" := items.Description;
                 processedClaimLines.Insert(true);
             until unprocessedClaimLines.next() = 0;
         end;

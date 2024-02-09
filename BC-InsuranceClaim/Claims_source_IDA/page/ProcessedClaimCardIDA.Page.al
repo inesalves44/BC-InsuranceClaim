@@ -68,7 +68,7 @@ page 55122 "Processed Claim Card IDA"
                     {
                         ToolTip = 'Specifies the value of the total Payment field.';
                     }
-                    field(Comments; rec.Comments)
+                    field(Comments; CommentsText)
                     {
                         ToolTip = 'Specifies the value of the Comments field.';
                         MultiLine = true;
@@ -93,5 +93,47 @@ page 55122 "Processed Claim Card IDA"
         }
 
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(FindEntries)
+            {
+                ApplicationArea = All;
+                Caption = 'Find Entries';
+                Image = Find;
+
+                trigger OnAction()
+                var
+                    documentsClaims: Record "Documents Claims IDA";
+                begin
+                    documentsClaims.GetDocuments(rec);
+                    Page.Run(page::"Navigate IDA", documentsClaims);
+                end;
+            }
+        }
+    }
+
+    var
+        CommentsText: text;
+
+    local procedure GetComments()
+    var
+        inStream: InStream;
+    begin
+        clear(CommentsText);
+        rec.CalcFields(Comments);
+        if rec.Comments.HasValue() then begin
+            rec.Comments.CreateInStream(inStream, TextEncoding::UTF8);
+            inStream.Read(CommentsText)
+        end;
+    end;
+
+
+    trigger OnAfterGetRecord()
+    begin
+        GetComments();
+    end;
 
 }

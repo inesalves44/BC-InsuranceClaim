@@ -19,6 +19,11 @@ page 55113 "Cust. Claims Led. Entries IDA"
                 field("Document No."; Rec."Document No.")
                 {
                     ToolTip = 'Specifies the value of the Document No. field.';
+
+                    trigger OnDrillDown()
+                    begin
+                        rec.OpenDocument();
+                    end;
                 }
                 field("Customer NO."; Rec."Customer NO.")
                 {
@@ -40,7 +45,7 @@ page 55113 "Cust. Claims Led. Entries IDA"
                 {
                     ToolTip = 'Specifies the value of the Date Claim field.';
                 }
-                field("responsible Payment"; Rec."responsible Payment")
+                field("responsible Payment"; Rec.Responsible)
                 {
                     ToolTip = 'Specifies the value of the responsible Payment field.';
                 }
@@ -60,11 +65,9 @@ page 55113 "Cust. Claims Led. Entries IDA"
     trigger OnAfterGetRecord()
     begin
         if rec.Responsible = responsibleEnum::Insured then begin
-            rec."responsible payment" := true;
             style := 'unfavorable';
         end
         else begin
-            rec."responsible payment" := false;
             style := 'none';
         end;
     end;

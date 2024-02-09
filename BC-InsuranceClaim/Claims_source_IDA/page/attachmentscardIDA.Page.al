@@ -65,7 +65,13 @@ page 55111 "attachments card IDA"
                     insStream: InStream;
                     fromfilename: text;
                 begin
+                    if rec."Entry No." <= 0 then begin
+                        rec."Entry No." := 1;
+                        rec.Date := today;
+                        rec.Insert();
+                    end;
                     if UploadIntoStream('Import', '', 'All Files (*.*)|*.*', FromFileName, insStream) then begin
+                        rec."Document Description" := fromfilename;
                         rec.Documents.ImportStream(insStream, fromfilename);
                         rec.Modify();
                     end;

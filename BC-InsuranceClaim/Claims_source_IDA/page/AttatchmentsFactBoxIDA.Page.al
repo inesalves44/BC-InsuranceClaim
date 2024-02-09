@@ -1,13 +1,10 @@
-page 55120 "Atta. FactBox Processed IDA"
+page 55107 "Attatchments FactBox IDA"
 {
     ApplicationArea = All;
-    Caption = 'Attatchments FactBox';
+    Caption = 'Attachments FactBox';
     PageType = ListPart;
     SourceTable = "attachments IDA";
-    Editable = false;
-    InsertAllowed = false;
-    DeleteAllowed = false;
-    ModifyAllowed = false;
+    CardPageId = "Attachments card IDA";
 
     layout
     {
@@ -15,6 +12,11 @@ page 55120 "Atta. FactBox Processed IDA"
         {
             repeater(General)
             {
+                field("entry NO."; rec."Entry No.")
+                {
+                    ApplicationArea = All;
+                }
+
                 field("Date"; Rec."Date")
                 {
                     ToolTip = 'Specifies the value of the Date field.';
@@ -38,6 +40,29 @@ page 55120 "Atta. FactBox Processed IDA"
     {
         area(Processing)
         {
+            action(ImportMedia)
+            {
+                ApplicationArea = All;
+                Caption = 'Import Docs';
+                Image = Import;
+
+                trigger OnAction()
+                var
+                    FromFileName: Text;
+                    InStreamPic: Instream;
+                    attachmentsTestIDA: Record "attachments IDA";
+                begin
+
+                    if UploadIntoStream('Import', '', 'All Files (*.*)|*.*', FromFileName, InStreamPic) then begin
+                        if attachmentsTestIDA.FindLast() then begin
+                            importExport.InsertMediaSetInTheAttachmentsTable(attachmentsTestIDA."Entry No." + 1, rec."Claim Document No.", FromFileName, InStreamPic);
+                        end
+                        else
+                            importExport.InsertMediaSetInTheAttachmentsTable(1, rec."Claim Document No.", FromFileName, InStreamPic);
+                    end;
+                end;
+            }
+
             action(ExportMedia)
             {
                 ApplicationArea = All;
@@ -53,12 +78,10 @@ page 55120 "Atta. FactBox Processed IDA"
                     attachments.SetRange("Claim Document No.", rec."Claim Document No.");
                     if not attachments.FindSet() then
                         exit;
-
                     importExport.ExportMediaFromOneClaimDocument(attachments);
                 end;
             }
         }
-
     }
     var
         importExport: Codeunit "Export and Import Files IDA";

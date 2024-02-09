@@ -42,7 +42,7 @@ table 55109 "Processed Claims Header IDA"
             Caption = 'Accident Date';
             DataClassification = CustomerContent;
         }
-        field(6; Comments; text[2048])
+        field(6; Comments; blob)
         {
             Caption = 'Comments';
             DataClassification = CustomerContent;
@@ -88,9 +88,9 @@ table 55109 "Processed Claims Header IDA"
     begin
         if (rec.Responsible = responsible::Insures) and (rec."Payment Date" = 0D) then
             error('Insures is responsible so payment date cannot be null.');
-        if (rec."Payment Date" < rec."Decision Date") then
+        if (rec."Payment Date" < rec."Decision Date") and (rec.Responsible = responsible::Insures) then
             error('Payment date cannot be before decision date');
-        if (rec."Payment Date" < rec."Accident Date") then
+        if (rec."Payment Date" < rec."Accident Date") and (rec.Responsible = responsible::Insures) then
             error('Payment date cannot be before accident date');
         if (rec."Decision Date" < rec."Accident Date") then
             error('decision date cannot be before accident date');
